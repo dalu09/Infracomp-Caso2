@@ -3,34 +3,31 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class Imagen {
-    private byte[] header = new byte[54]; // Cabecera de la imagen BMP
-    private byte[][][] imagen; // Matriz de la imagen en formato RGB
-    private int alto, ancho; // Dimensiones de la imagen
+    private byte[] header = new byte[54]; 
+    private byte[][][] imagen;
+    private int alto, ancho;
 
-    // Constructor que lee la imagen BMP
     public Imagen(String input) {
         try {
             FileInputStream fis = new FileInputStream(input);
-            // Leer la cabecera de la imagen
             fis.read(header);
 
-            // Extraer el ancho y alto de la imagen desde la cabecera (formato little endian)
+            // Extraer el ancho y alto de la imagen
             ancho = ((header[21] & 0xFF) << 24) | ((header[20] & 0xFF) << 16) | 
-                     ((header[19] & 0xFF) << 8) | (header[18] & 0xFF);
+                    ((header[19] & 0xFF) << 8) | (header[18] & 0xFF);
             alto = ((header[25] & 0xFF) << 24) | ((header[24] & 0xFF) << 16) | 
-                    ((header[23] & 0xFF) << 8) | (header[22] & 0xFF);
+                   ((header[23] & 0xFF) << 8) | (header[22] & 0xFF);
 
-            // Inicializar la matriz imagen
-            imagen = new byte[alto][ancho][3]; // R, G, B
+            imagen = new byte[alto][ancho][3]; 
 
-            // Leer los píxeles de la imagen (formato RGB almacenado como BGR)
-            byte[] pixel = new byte[3]; // Un píxel tiene 3 bytes: B, G, R
+            // Leer los píxeles de la imagen
+            byte[] pixel = new byte[3];
             for (int i = 0; i < alto; i++) {
                 for (int j = 0; j < ancho; j++) {
                     fis.read(pixel);
-                    imagen[i][j][0] = pixel[2]; // R
-                    imagen[i][j][1] = pixel[1]; // G
-                    imagen[i][j][2] = pixel[0]; // B
+                    imagen[i][j][0] = pixel[2]; 
+                    imagen[i][j][1] = pixel[1]; 
+                    imagen[i][j][2] = pixel[0]; 
                 }
             }
 
@@ -40,26 +37,23 @@ public class Imagen {
         }
     }
 
-    // Método para esconder un mensaje en la imagen
     public void esconderMensaje(char[] mensaje, int longitud) {
         int contador = 0;
-        byte elByte;
-        escribirBits(contador, longitud, 16); // Esconder la longitud del mensaje
+        escribirBits(contador, longitud, 16); 
 
-        contador = 2; // Empezar a esconder el mensaje después de la longitud
+        contador = 2;
         for (int i = 0; i < longitud; i++) {
-            elByte = (byte) mensaje[i];
-            escribirBits(contador, elByte, 8); // Esconder cada carácter del mensaje
+            byte elByte = (byte) mensaje[i];
+            escribirBits(contador, elByte, 8);
             contador++;
         }
     }
 
-    // Método para recuperar el mensaje escondido en la imagen
     public char[] recuperarMensaje() {
-        int longitud = leerLongitud(); // Leer la longitud del mensaje
+        int longitud = leerLongitud(); 
         char[] mensaje = new char[longitud];
 
-        int bytesFila = ancho * 3; // Cada fila de la matriz tiene "ancho * 3" bytes
+        int bytesFila = ancho * 3;
         for (int posCaracter = 0; posCaracter < longitud; posCaracter++) {
             mensaje[posCaracter] = 0;
             for (int i = 0; i < 8; i++) {
@@ -73,7 +67,6 @@ public class Imagen {
         return mensaje;
     }
 
-    // Método auxiliar para escribir bits en los píxeles
     private void escribirBits(int contador, int valor, int numbits) {
         int bytesPorFila = ancho * 3;
         for (int i = 0; i < numbits; i++) {
@@ -85,7 +78,6 @@ public class Imagen {
         }
     }
 
-    // Método para leer la longitud del mensaje escondido
     public int leerLongitud() {
         int longitud = 0;
         for (int i = 0; i < 16; i++) {
@@ -95,28 +87,25 @@ public class Imagen {
         return longitud;
     }
 
-    // Método para obtener el ancho de la imagen
     public int getAncho() {
         return this.ancho;
     }
 
-    // Método para obtener el alto de la imagen
     public int getAlto() {
         return this.alto;
     }
 
-    // Método para escribir la imagen modificada en un archivo BMP
     public void escribirImagen(String output) {
         try {
             FileOutputStream fos = new FileOutputStream(output);
-            fos.write(header); // Escribir la cabecera
+            fos.write(header);
 
             byte[] pixel = new byte[3];
             for (int i = 0; i < alto; i++) {
                 for (int j = 0; j < ancho; j++) {
-                    pixel[0] = imagen[i][j][2]; // R
-                    pixel[1] = imagen[i][j][1]; // G
-                    pixel[2] = imagen[i][j][0]; // B
+                    pixel[0] = imagen[i][j][2]; 
+                    pixel[1] = imagen[i][j][1]; 
+                    pixel[2] = imagen[i][j][0]; 
                     fos.write(pixel);
                 }
             }

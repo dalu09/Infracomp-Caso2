@@ -5,11 +5,10 @@ public class App {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        // Pedir al usuario que ingrese el número de marcos de página
         System.out.print("Ingrese el número de marcos de página: ");
         int numMarcos = scanner.nextInt();
 
-        PageTable pageTable = new PageTable(numMarcos);  // Tabla de páginas inicializada con el número de marcos
+        PageTable pageTable = new PageTable(numMarcos); 
         FaultsCounter faultsCounter = new FaultsCounter();
         Imagen imagenModificada = null;
 
@@ -56,10 +55,10 @@ public class App {
             FileWriter writer = new FileWriter("referencias.txt");
             int filas = imagen.getAlto();
             int columnas = imagen.getAncho();
-            int tamanoMensaje = imagen.leerLongitud(); // Se obtiene la longitud del mensaje desde la imagen
+            int tamanoMensaje = imagen.leerLongitud();
     
             // Calcular número de páginas necesarias
-            int totalBytes = filas * columnas * 3 + tamanoMensaje; // Total de bytes de la imagen y el mensaje
+            int totalBytes = filas * columnas * 3 + tamanoMensaje;
             int paginasVirtuales = (int) Math.ceil((double) totalBytes / tamanoPagina);
     
             // Escribir cabecera del archivo de referencias
@@ -72,7 +71,6 @@ public class App {
             // Escribir referencias generadas
             for (int i = 0; i < filas; i++) {
                 for (int j = 0; j < columnas; j++) {
-                    // Referencias para los colores R, G y B
                     writer.write("Imagen[" + i + "][" + j + "].R," + (i * columnas + j) / tamanoPagina + "," + (i * columnas + j) % tamanoPagina + ",R\n");
                     writer.write("Imagen[" + i + "][" + j + "].G," + (i * columnas + j) / tamanoPagina + "," + (i * columnas + j) % tamanoPagina + ",R\n");
                     writer.write("Imagen[" + i + "][" + j + "].B," + (i * columnas + j) / tamanoPagina + "," + (i * columnas + j) % tamanoPagina + ",R\n");
@@ -91,10 +89,14 @@ public class App {
         }
     }
     
-    // Simular hits y fallos de página leyendo el archivo de referencias
     public static void simularPaginacion(String archivoReferencias, int numMarcos) {
-        PageTable pageTable = new PageTable(numMarcos);  // Inicializar la tabla de páginas con el número de marcos
+        PageTable pageTable = new PageTable(numMarcos);
         FaultsCounter faultsCounter = new FaultsCounter();
+        
+        // Variables para calcular tiempos
+        long tiempoTotal = 0;
+        long tiempoHits = 25;  // ns
+        long tiempoMisses = 10_000_000;  // 10 ms en ns
     
         try {
             BufferedReader reader = new BufferedReader(new FileReader(archivoReferencias));
@@ -104,13 +106,15 @@ public class App {
                 if (linea.startsWith("Imagen") || linea.startsWith("Mensaje")) {
                     String[] partes = linea.split(",");
                     int paginaVirtual = Integer.parseInt(partes[1]);
-                    
+    
                     // Intentamos cargar la página y verificamos si es un hit o un fallo de página
                     boolean hit = pageTable.loadPage(paginaVirtual);
                     if (hit) {
                         faultsCounter.countHit();
+                        tiempoTotal += tiempoHits;
                     } else {
                         faultsCounter.countFault();
+                        tiempoTotal += tiempoMisses;
                     }
                 }
             }
@@ -119,10 +123,12 @@ public class App {
             System.out.println("Simulación completada.");
             System.out.println("Total de fallas de página: " + faultsCounter.getFaults());
             System.out.println("Total de hits: " + faultsCounter.getHits());
+            System.out.println("Tiempo total de acceso: " + tiempoTotal + " nanosegundos");
     
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+    
     
 }

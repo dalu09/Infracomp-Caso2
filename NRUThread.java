@@ -6,10 +6,11 @@ public class NRUThread extends Thread {
     }
 
     public void run() {
-        // Simulación de la ejecución del algoritmo NRU cada 1 ms
         try {
             while (true) {
-                pageTable.categorizePages(); // Clasifica las páginas para el algoritmo NRU
+                synchronized(pageTable) {
+                    pageTable.categorizePages(); // Clasifica las páginas para el algoritmo NRU
+                }
                 Thread.sleep(1); // Ejecutar el algoritmo NRU cada 1 ms
             }
         } catch (InterruptedException e) {
